@@ -32,13 +32,24 @@ export const ArticleParamsForm = ({
 	const formRef = useRef<HTMLDivElement>(null);
 
 	const toggleMenu = () => {
-		setIsOpen((prev) => !prev);
+		setIsOpen((prev) => {
+			const nextOpen = !prev;
+			if (!nextOpen) {
+				setFormState(currentAppState);
+			}
+			return nextOpen;
+		});
 	};
 
 	useOutsideClickClose({
 		isOpen,
 		rootRef: formRef,
-		onChange: setIsOpen,
+		onChange: (newValue) => {
+			setIsOpen(newValue);
+			if (!newValue) {
+				setFormState(currentAppState);
+			}
+		},
 	});
 
 	const handleSubmit = (event: React.FormEvent) => {
