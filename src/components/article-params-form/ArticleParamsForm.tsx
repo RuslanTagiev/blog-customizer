@@ -8,17 +8,29 @@ import {
 	fontColors,
 	backgroundColors,
 	contentWidthArr,
+	ArticleStateType,
 } from 'src/constants/articleProps';
 import { useOutsideClickClose } from 'src/ui/select/hooks/useOutsideClickClose';
 import clsx from 'clsx';
 import styles from './ArticleParamsForm.module.scss';
 import { Select } from 'src/ui/select';
 import { RadioGroup } from 'src/ui/radio-group';
+import { Separator } from 'src/ui/separator';
+import { Text } from 'src/ui/text';
 
-export const ArticleParamsForm = () => {
+type ArticleParamsFormProps = {
+	currentAppState: ArticleStateType;
+	onApply: (state: ArticleStateType) => void;
+};
+
+export const ArticleParamsForm = ({
+	currentAppState,
+	onApply,
+}: ArticleParamsFormProps) => {
 	const [isOpen, setIsOpen] = useState(false);
-	const [formState, setFormState] = useState(defaultArticleState);
+	const [formState, setFormState] = useState(currentAppState);
 	const formRef = useRef<HTMLDivElement>(null);
+
 	const toggleMenu = () => {
 		setIsOpen((prev) => !prev);
 	};
@@ -29,13 +41,31 @@ export const ArticleParamsForm = () => {
 		onChange: setIsOpen,
 	});
 
+	const handleSubmit = (event: React.FormEvent) => {
+		event.preventDefault();
+		onApply(formState);
+	};
+
+	const handleReset = (event: React.FormEvent) => {
+		event.preventDefault();
+		setFormState(defaultArticleState);
+		onApply(defaultArticleState);
+	};
+
 	return (
 		<>
 			<ArrowButton isOpen={isOpen} onClick={toggleMenu} />
 			<aside
 				ref={formRef}
 				className={clsx(styles.container, isOpen && styles.container_open)}>
-				<form className={styles.form}>
+				<form
+					className={styles.form}
+					onSubmit={handleSubmit}
+					onReset={handleReset}>
+					<Text weight={800} size={31} uppercase>
+						Задайте параметры
+					</Text>
+
 					<Select
 						title='Шрифт'
 						options={fontFamilyOptions}
@@ -44,6 +74,7 @@ export const ArticleParamsForm = () => {
 							setFormState({ ...formState, fontFamilyOption: selected })
 						}
 					/>
+
 					<RadioGroup
 						title='Размер шрифта'
 						name='fontSize'
@@ -53,6 +84,7 @@ export const ArticleParamsForm = () => {
 							setFormState({ ...formState, fontSizeOption: selected })
 						}
 					/>
+
 					<Select
 						title='Цвет шрифта'
 						options={fontColors}
@@ -61,6 +93,11 @@ export const ArticleParamsForm = () => {
 							setFormState({ ...formState, fontColor: selected })
 						}
 					/>
+
+					<div style={{ opacity: 0.15 }}>
+						<Separator />
+					</div>
+
 					<Select
 						title='Цвет фона'
 						options={backgroundColors}
@@ -69,6 +106,7 @@ export const ArticleParamsForm = () => {
 							setFormState({ ...formState, backgroundColor: selected })
 						}
 					/>
+
 					<Select
 						title='Ширина контента'
 						options={contentWidthArr}
