@@ -9,8 +9,9 @@ import {
 	backgroundColors,
 	contentWidthArr,
 	ArticleStateType,
+	OptionType,
 } from 'src/constants/articleProps';
-import { useOutsideClickClose } from 'src/ui/select/hooks/useOutsideClickClose';
+import { useOutsideClickClose } from './hooks/useOutsideClickClose';
 import clsx from 'clsx';
 import styles from './ArticleParamsForm.module.scss';
 import { Select } from 'src/ui/select';
@@ -27,30 +28,24 @@ export const ArticleParamsForm = ({
 	currentAppState,
 	onApply,
 }: ArticleParamsFormProps) => {
-	const [isOpen, setIsOpen] = useState(false);
+	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const [formState, setFormState] = useState(currentAppState);
 	const formRef = useRef<HTMLDivElement>(null);
 
 	const toggleMenu = () => {
-		setIsOpen((prev) => {
-			const nextOpen = !prev;
-			if (!nextOpen) {
-				setFormState(currentAppState);
-			}
-			return nextOpen;
-		});
+		setIsMenuOpen((prev) => !prev);
 	};
 
 	useOutsideClickClose({
-		isOpen,
+		isOpen: isMenuOpen,
 		rootRef: formRef,
-		onChange: (newValue) => {
-			setIsOpen(newValue);
-			if (!newValue) {
-				setFormState(currentAppState);
-			}
-		},
+		onChange: setIsMenuOpen,
 	});
+
+	const handleChange =
+		(field: keyof ArticleStateType) => (value: OptionType) => {
+			setFormState((prev) => ({ ...prev, [field]: value }));
+		};
 
 	const handleSubmit = (event: React.FormEvent) => {
 		event.preventDefault();
@@ -65,10 +60,10 @@ export const ArticleParamsForm = ({
 
 	return (
 		<>
-			<ArrowButton isOpen={isOpen} onClick={toggleMenu} />
+			<ArrowButton isOpen={isMenuOpen} onClick={toggleMenu} />
 			<aside
 				ref={formRef}
-				className={clsx(styles.container, isOpen && styles.container_open)}>
+				className={clsx(styles.container, isMenuOpen && styles.container_open)}>
 				<form
 					className={styles.form}
 					onSubmit={handleSubmit}
@@ -81,9 +76,7 @@ export const ArticleParamsForm = ({
 						title='Шрифт'
 						options={fontFamilyOptions}
 						selected={formState.fontFamilyOption}
-						onChange={(selected) =>
-							setFormState({ ...formState, fontFamilyOption: selected })
-						}
+						onChange={handleChange('fontFamilyOption')}
 					/>
 
 					<RadioGroup
@@ -91,21 +84,17 @@ export const ArticleParamsForm = ({
 						name='fontSize'
 						options={fontSizeOptions}
 						selected={formState.fontSizeOption}
-						onChange={(selected) =>
-							setFormState({ ...formState, fontSizeOption: selected })
-						}
+						onChange={handleChange('fontSizeOption')}
 					/>
 
 					<Select
 						title='Цвет шрифта'
 						options={fontColors}
 						selected={formState.fontColor}
-						onChange={(selected) =>
-							setFormState({ ...formState, fontColor: selected })
-						}
+						onChange={handleChange('fontColor')}
 					/>
 
-					<div style={{ opacity: 0.15 }}>
+					<div className={styles.separatorWrapper}>
 						<Separator />
 					</div>
 
@@ -113,18 +102,14 @@ export const ArticleParamsForm = ({
 						title='Цвет фона'
 						options={backgroundColors}
 						selected={formState.backgroundColor}
-						onChange={(selected) =>
-							setFormState({ ...formState, backgroundColor: selected })
-						}
+						onChange={handleChange('backgroundColor')}
 					/>
 
 					<Select
 						title='Ширина контента'
 						options={contentWidthArr}
 						selected={formState.contentWidth}
-						onChange={(selected) =>
-							setFormState({ ...formState, contentWidth: selected })
-						}
+						onChange={handleChange('contentWidth')}
 					/>
 
 					<div className={styles.bottomContainer}>
